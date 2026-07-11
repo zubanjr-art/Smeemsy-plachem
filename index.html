@@ -2,80 +2,67 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Колесо Треша</title>
+<title>Плачем/Смеемся</title>
 <style>
-body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; background: #1a1a1a; color: #fff; }
-#wheel { width: 280px; height: 280px; border: 8px solid #ff4757; border-radius: 50%; margin: 30px auto;
-display: flex; align-items: center; justify-content: center; font-weight: bold;
-font-size: 16px; transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99); background: #333; padding: 15px; }
-button { padding: 15px 25px; font-size: 18px; cursor: pointer; border-radius: 30px; border: none; background: #ff4757; color: white; margin: 5px; font-weight: bold; }
-.spin-anim { transform: rotate(1800deg); }
+body { font-family: sans-serif; text-align: center; background: linear-gradient(45deg, #ff9a9e, #fad0c4, #a18cd1, #fbc2eb); background-size: 400% 400%; animation: gradient 15s ease infinite; color: white; padding: 20px; }
+@keyframes gradient { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
+.screen { display: none; } .active { display: block; }
+#wheel { width: 250px; height: 250px; border: 10px solid white; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; background: rgba(0,0,0,0.3); transition: transform 3s ease-out; }
+button { padding: 15px 25px; margin: 10px; border-radius: 20px; border: none; background: #fff; color: #333; font-weight: bold; cursor: pointer; }
 </style>
 </head>
 <body>
-<h1>🎮 Колесо Треша</h1>
-<div class="cats">
-<button onclick="setMode('classic')">Классика</button>
-<button onclick="setMode('hardcore')">Хардкор</button>
+
+<!-- Меню -->
+<div id="menu" class="screen active">
+<h1>Плачем/Смеемся</h1>
+<button onclick="show('mode-select')">Начать играть</button><br>
+<button onclick="alert('Правила: Крути и выполняй!')">Правила игры</button><br>
+<button onclick="alert('Скоро!')">Другие игры</button>
 </div>
-<div id="wheel">Готов к безумию?</div>
+
+<!-- Выбор режима и Имена -->
+<div id="mode-select" class="screen">
+<h2>Выберите режим</h2>
+<button onclick="setGame('classic')">Классика</button>
+<button onclick="setGame('hardcore')">Хардкор</button>
+<div id="names-input" style="margin-top:20px;">
+<input type="text" id="p1" placeholder="Игрок 1">
+<input type="text" id="p2" placeholder="Игрок 2">
+<button onclick="start()">Погнали!</button>
+</div>
+</div>
+
+<!-- Игра -->
+<div id="game" class="screen">
+<h2 id="turn-info">Ход игрока</h2>
+<div id="wheel">Крути!</div>
 <button onclick="spin()">КРУТИТЬ</button>
+</div>
 
 <script>
-const db = {
-classic: [
-"Изобрази гаишника", "Спой как оперный певец", "Расскажи нелепый секрет", "Позвони в доставку и спроси, есть ли у них борщ",
-"Изобрази поведение кота в течение минуты", "Прочитай рэп про соседа", "Сделай 20 приседаний", "Станцуй лезгинку",
-"Попробуй рассмешить каждого в комнате", "Признайся в любви к холодильнику", "Изобрази официанта-неудачника",
-"Расскажи историю с закрытыми глазами", "Сделай вид, что ты инопланетянин", "Покажи фокус с салфеткой",
-"Напиши сообщение случайному контакту: 'Я все знаю'", "Позвони маме и скажи, что уезжаешь в Тибет",
-"Придумай новое название для этого треша", "Изобрази звук работающего трактора", "Попробуй почесать локоть языком",
-"Скажи всем комплимент, но с акцентом", "Прокукарекай в окно", "Сделай селфи с самым серьезным лицом",
-"Изобрази замедленную съемку", "Расскажи, как прошел твой лучший день в жизни", "Станцуй под музыку из мультика",
-"Сделай вид, что ты статуя", "Напиши стих про табуретку", "Изобрази звук открывающейся бутылки",
-"Объясни правила футбола, не используя руки", "Начни разговор с вопроса: 'А где тут выход?'",
-"Изобрази, как ты идешь по луне", "Попробуй удержать книгу на голове 30 секунд", "Сыграй на воображаемой гитаре",
-"Расскажи анекдот так, чтобы никто не засмеялся", "Сделай вид, что ты модель на подиуме", "Обними ближайший стул",
-"Покажи пантомиму 'я потерял ключи'", "Сделай 10 прыжков на одной ноге", "Расскажи, что ты съел вчера",
-"Изобрази звук будильника", "Попробуй нарисовать что-то пальцем в воздухе", "Сыграй роль злого босса",
-"Назови 5 предметов на букву 'К'", "Изобрази, как ты ешь лимон", "Прошепчи всем свой прогноз погоды",
-"Сделай глубокий поклон как в театре", "Начни смеяться без причины", "Изобрази поведение робота",
-"Попробуй не моргать 20 секунд", "Сложи руки как в молитве и попроси прощения у носка"
-],
-hardcore: [
-"Позвони бывшей", "Сбрей бровь (или сделай вид)", "Крикни в окно 'Я люблю пельмени!'", "Сделай странный пост в соцсети",
-"Позвони в службу поддержки и попроси совета по личной жизни", "Съешь что-то очень странное из холодильника",
-"Выйди на балкон и помаши незнакомцам", "Отправь начальнику эмодзи 'баклажан'", "Сделай 50 отжиманий прямо сейчас",
-"Запиши видео, где ты извиняешься перед деревом", "Позвони в 10-й контакт в телефоне и промолчи",
-"Попробуй продать кому-то воздух", "Напиши в чат: 'Я ухожу в монастырь'", "Изобрази истерику в магазине",
-"Позвони случайному номеру и спроси: 'Где деньги?'", "Сделай макияж маркером", "Расскажи свой самый постыдный случай",
-"Надень одежду наизнанку", "Выйди на улицу в домашнем", "Попробуй убедить кота, что ты его хозяин",
-"Сделай видео, где ты танцуешь под радио", "Отправь скриншот своей переписки с мамой друзьям",
-"Попробуй съесть ложку сахара без воды", "Напиши признание в любви на асфальте", "Сделай вид, что ты потерял память",
-"Попробуй разбудить спящего соседа с песней", "Начни говорить только на иностранном языке", "Сделай татуировку ручкой",
-"Прочитай новости с выражением ужаса", "Напиши пост, что ты стал космонавтом", "Попробуй облизать локоть",
-"Станцуй на столе", "Позвони в полицию (не в 112!) и спроси, как дела", "Изобрази пожарную сигнализацию",
-"Начни рыдать от счастья при виде стакана", "Попробуй обменяться одеждой с кем-то", "Напиши стих про врагов",
-"Изобрази, как ты ешь кактус", "Позвони другу и начни кричать о заговоре", "Попробуй съесть хлеб без рук",
-"Сделай селфи в туалете и выложи", "Начни собирать коллекцию крышек", "Объяви всех королями",
-"Изобрази приступ смеха в тихом месте", "Попробуй пересказать фильм ужасов", "Выйди в подъезд и постой там 5 минут",
-"Попробуй убедить всех, что ты инопланетянин", "Начни собирать подписи за запрет дождя",
-"Сделай вид, что ты не понимаешь русского", "Изобрази звук разрывающейся ткани"
-]
+let players = []; let currentPlayer = 0; let mode = '';
+const tasks = {
+classic: { easy: ["Обними соседа", "Расскажи стих"], medium: ["Пой песню", "Сделай 10 приседаний"], hard: ["Изобрази гаишника"] },
+hardcore: { easy: ["Крикни в окно", "Позвони бывшей"], medium: ["Сбрей бровь", "Танцуй на столе"], hard: ["Сделай 50 отжиманий"] }
 };
-let currentMode = 'classic';
 
-function setMode(mode) { currentMode = mode; document.getElementById('wheel').innerText = "Режим: " + mode; }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function setGame(m) { mode = m; }
+function start() { players = [document.getElementById('p1').value, document.getElementById('p2').value]; show('game'); }
 
 function spin() {
 const wheel = document.getElementById('wheel');
+const colors = ['#ff4757', '#ffa502', '#2ed573']; // Красный, Оранжевый, Зеленый
+const randColor = colors[Math.floor(Math.random() * colors.length)];
+wheel.style.borderColor = randColor;
+
 wheel.classList.add('spin-anim');
-setTimeout(() => wheel.classList.remove('spin-anim'), 3000);
 setTimeout(() => {
-const tasks = db[currentMode];
-wheel.innerText = tasks[Math.floor(Math.random() * tasks.length)];
-}, 1000);
+const diff = ['easy', 'medium', 'hard'][Math.floor(Math.random()*3)];
+wheel.innerText = tasks[mode][diff];
+wheel.classList.remove('spin-anim');
+}, 3000);
 }
 </script>
 </body>
