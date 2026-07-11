@@ -2,43 +2,69 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Смеемся / Плачем</title>
+<title>Плачем / Смеемся</title>
 <style>
-body {
-font-family: 'Segoe UI', sans-serif;
-background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
-margin: 0; padding: 20px; color: #333; min-height: 100vh;
-}
+body { font-family: 'Segoe UI', sans-serif; background: #fdfcfb; margin: 0; padding: 20px; color: #333; }
 .container { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-h1 { font-size: 28px; margin-bottom: 5px; }
-.status { color: #2ed573; font-size: 14px; margin-bottom: 20px; font-weight: bold; }
-.card { border: 1px solid #eee; padding: 15px; border-radius: 20px; margin: 10px 0; display: flex; align-items: center; cursor: pointer; transition: 0.3s; }
-.card:hover { background: #f9f9f9; }
-.icon { font-size: 24px; margin-right: 15px; }
-.big-btn { width: 100%; padding: 18px; border-radius: 50px; border: none; background: #007bff; color: white; font-weight: bold; font-size: 16px; margin-top: 20px; }
+.card { border: 2px solid #eee; padding: 15px; border-radius: 20px; margin: 10px 0; cursor: pointer; transition: 0.3s; text-align: left; }
+.selected { border-color: #007bff; background: #e7f1ff; }
+input { width: 85%; padding: 10px; margin: 10px 0; border-radius: 10px; border: 1px solid #ccc; }
+button { width: 100%; padding: 15px; border-radius: 20px; border: none; background: #007bff; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="app">
+<!-- ЭКРАН 1: Выбор режима -->
+<div id="screen-mode">
 <h1>СМЕЕМСЯ / ПЛАЧЕМ</h1>
-<div class="status">● Игра готова к запуску</div>
-
-<div style="margin-bottom: 20px;">[1] игрока в лобби <a href="#">Изм.</a></div>
-
-<div class="card">
-<div class="icon">📁</div>
-<div><strong>Классический</strong><br><small>Случайные задания для всех</small></div>
+<div class="card" onclick="selectMode(this, 'classic')">Классический</div>
+<div class="card" onclick="selectMode(this, 'hardcore')">Хардкор</div>
+<div class="card" onclick="selectMode(this, 'adult')">Вечеринка 18+</div>
+<button onclick="goToPlayers()">Далее</button>
 </div>
 
-<div class="card">
-<div class="icon">🔥</div>
-<div><strong>Хардкор</strong><br><small>Самые безумные испытания</small></div>
+<!-- ЭКРАН 2: Ввод игроков -->
+<div id="screen-players" style="display:none;">
+<h1>Кто играет?</h1>
+<input type="text" id="player-input" placeholder="Имя игрока">
+<button onclick="addPlayer()">+ Добавить игрока</button>
+<h3>Участники:</h3>
+<ul id="player-list"></ul>
+<button style="background:#2ed573" onclick="startGame()">Начать игру</button>
+</div>
 </div>
 
-<button class="big-btn">Крутить колесо</button>
-</div>
+<script>
+let selectedMode = '';
+let players = [];
 
+function selectMode(el, mode) {
+document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+el.classList.add('selected');
+selectedMode = mode;
+}
+
+function goToPlayers() {
+if (!selectedMode) return alert('Выберите режим!');
+document.getElementById('screen-mode').style.display = 'none';
+document.getElementById('screen-players').style.display = 'block';
+}
+
+function addPlayer() {
+const name = document.getElementById('player-input').value;
+if (name) {
+players.push(name);
+document.getElementById('player-list').innerHTML += `<li>${name}</li>`;
+document.getElementById('player-input').value = '';
+}
+}
+
+function startGame() {
+if (players.length < 1) return alert('Добавьте хотя бы одного игрока!');
+alert('Режим: ' + selectedMode + '. Игроки: ' + players.join(', ') + '. Погнали крутить!');
+// Здесь можно добавить переход к экрану с колесом
+}
+</script>
 </body>
 </html>
