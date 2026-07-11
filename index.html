@@ -2,68 +2,43 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Плачем/Смеемся</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Смеемся / Плачем</title>
 <style>
-body { font-family: sans-serif; text-align: center; background: linear-gradient(45deg, #ff9a9e, #fad0c4, #a18cd1, #fbc2eb); background-size: 400% 400%; animation: gradient 15s ease infinite; color: white; padding: 20px; }
-@keyframes gradient { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
-.screen { display: none; } .active { display: block; }
-#wheel { width: 250px; height: 250px; border: 10px solid white; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; background: rgba(0,0,0,0.3); transition: transform 3s ease-out; }
-button { padding: 15px 25px; margin: 10px; border-radius: 20px; border: none; background: #fff; color: #333; font-weight: bold; cursor: pointer; }
+body {
+font-family: 'Segoe UI', sans-serif;
+background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+margin: 0; padding: 20px; color: #333; min-height: 100vh;
+}
+.container { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+h1 { font-size: 28px; margin-bottom: 5px; }
+.status { color: #2ed573; font-size: 14px; margin-bottom: 20px; font-weight: bold; }
+.card { border: 1px solid #eee; padding: 15px; border-radius: 20px; margin: 10px 0; display: flex; align-items: center; cursor: pointer; transition: 0.3s; }
+.card:hover { background: #f9f9f9; }
+.icon { font-size: 24px; margin-right: 15px; }
+.big-btn { width: 100%; padding: 18px; border-radius: 50px; border: none; background: #007bff; color: white; font-weight: bold; font-size: 16px; margin-top: 20px; }
 </style>
 </head>
 <body>
 
-<!-- Меню -->
-<div id="menu" class="screen active">
-<h1>Плачем/Смеемся</h1>
-<button onclick="show('mode-select')">Начать играть</button><br>
-<button onclick="alert('Правила: Крути и выполняй!')">Правила игры</button><br>
-<button onclick="alert('Скоро!')">Другие игры</button>
+<div class="container">
+<h1>СМЕЕМСЯ / ПЛАЧЕМ</h1>
+<div class="status">● Игра готова к запуску</div>
+
+<div style="margin-bottom: 20px;">[1] игрока в лобби <a href="#">Изм.</a></div>
+
+<div class="card">
+<div class="icon">📁</div>
+<div><strong>Классический</strong><br><small>Случайные задания для всех</small></div>
 </div>
 
-<!-- Выбор режима и Имена -->
-<div id="mode-select" class="screen">
-<h2>Выберите режим</h2>
-<button onclick="setGame('classic')">Классика</button>
-<button onclick="setGame('hardcore')">Хардкор</button>
-<div id="names-input" style="margin-top:20px;">
-<input type="text" id="p1" placeholder="Игрок 1">
-<input type="text" id="p2" placeholder="Игрок 2">
-<button onclick="start()">Погнали!</button>
-</div>
+<div class="card">
+<div class="icon">🔥</div>
+<div><strong>Хардкор</strong><br><small>Самые безумные испытания</small></div>
 </div>
 
-<!-- Игра -->
-<div id="game" class="screen">
-<h2 id="turn-info">Ход игрока</h2>
-<div id="wheel">Крути!</div>
-<button onclick="spin()">КРУТИТЬ</button>
+<button class="big-btn">Крутить колесо</button>
 </div>
 
-<script>
-let players = []; let currentPlayer = 0; let mode = '';
-const tasks = {
-classic: { easy: ["Обними соседа", "Расскажи стих"], medium: ["Пой песню", "Сделай 10 приседаний"], hard: ["Изобрази гаишника"] },
-hardcore: { easy: ["Крикни в окно", "Позвони бывшей"], medium: ["Сбрей бровь", "Танцуй на столе"], hard: ["Сделай 50 отжиманий"] }
-};
-
-function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function setGame(m) { mode = m; }
-function start() { players = [document.getElementById('p1').value, document.getElementById('p2').value]; show('game'); }
-
-function spin() {
-const wheel = document.getElementById('wheel');
-const colors = ['#ff4757', '#ffa502', '#2ed573']; // Красный, Оранжевый, Зеленый
-const randColor = colors[Math.floor(Math.random() * colors.length)];
-wheel.style.borderColor = randColor;
-
-wheel.classList.add('spin-anim');
-setTimeout(() => {
-const diff = ['easy', 'medium', 'hard'][Math.floor(Math.random()*3)];
-wheel.innerText = tasks[mode][diff];
-wheel.classList.remove('spin-anim');
-}, 3000);
-}
-</script>
 </body>
 </html>
