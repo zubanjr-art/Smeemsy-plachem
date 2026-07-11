@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Колесо Треша</title>
+<style>
+body { font-family: sans-serif; text-align: center; padding: 20px; background: #222; color: #fff; }
+#wheel { width: 250px; height: 250px; border: 10px solid #fff; border-radius: 50%; margin: 30px auto;
+display: flex; align-items: center; justify-content: center; font-weight: bold;
+font-size: 18px; transition: transform 3s ease-out; background: #444; }
+button { padding: 15px 30px; font-size: 20px; cursor: pointer; border-radius: 50px; border: none; background: #ff4757; color: white; margin: 10px; }
+.spin-anim { transform: rotate(1800deg); } /* Анимация вращения */
+</style>
+</head>
+<body>
+<h1>🎮 Колесо Треша</h1>
+<div class="cats">
+<button onclick="setMode('classic')">Классика</button>
+<button onclick="setMode('hardcore')">Хардкор</button>
+</div>
+<div id="wheel">Жми кнопку!</div>
+<button onclick="spin()">КРУТИТЬ</button>
+
+<script>
+// Здесь можно вставить полный список из 300 заданий
+const db = {
+classic: ["Изобрази гаишника", "Расскажи секрет", "Спой как оперный певец", "И еще 97 заданий..."],
+hardcore: ["Позвони бывшей", "Сбрей бровь", "Крикни в окно", "И еще 97 заданий..."]
+};
+let currentMode = 'classic';
+
+function setMode(mode) { currentMode = mode; document.getElementById('wheel').innerText = "Режим: " + mode; }
+
+function spin() {
+const wheel = document.getElementById('wheel');
+// Запуск анимации
+wheel.classList.add('spin-anim');
+setTimeout(() => wheel.classList.remove('spin-anim'), 3000);
+
+// Выбор задания
+setTimeout(() => {
+const tasks = db[currentMode];
+wheel.innerText = tasks[Math.floor(Math.random() * tasks.length)];
+}, 1000);
+}
+</script>
+</body>
+</html>
