@@ -4,29 +4,32 @@
 <meta charset="UTF-8">
 <title>Плачем / Смеемся</title>
 <style>
-body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 10px; }
+body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 10px; }
 .container { max-width: 400px; margin: auto; background: #252525; padding: 20px; border-radius: 20px; }
 .screen { display: none; } .active { display: block; }
-img { width: 100%; max-width: 250px; border-radius: 20px; margin-bottom: 20px; }
-button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #007bff; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
-/* Исправленная кнопка удаления */
-.player-item { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333; }
-.del-btn { padding: 4px 8px; font-size: 11px; background: #ff4757; border: none; color: white; border-radius: 4px; cursor: pointer; }
-
-/* Колесо с анимацией */
-#wheel-container { width: 220px; height: 220px; margin: 20px auto; border-radius: 50%; border: 6px solid #fff;
-background: conic-gradient(#2ed573 0deg 120deg, #ff4757 120deg 240deg, #a55eea 240deg 360deg); }
-.spinning { animation: spin 5s cubic-bezier(0.1, 0, 0.1, 1) forwards; }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(3600deg); } }
-#arrow { font-size: 30px; margin-bottom: -15px; }
+.logo { width: 150px; border-radius: 50%; margin-bottom: 10px; }
+.card { border: 2px solid #444; padding: 10px; margin: 8px 0; cursor: pointer; border-radius: 10px; }
+.selected { border-color: #a55eea; background: #3c2a66; }
+/* Кнопка удалить справа */
+.player-item { display: flex; align-items: center; justify-content: space-between; padding: 5px; border-bottom: 1px solid #333; }
+.del-btn { padding: 4px 8px; font-size: 10px; background: #ff4757; border: none; color: white; cursor: pointer; border-radius: 4px; }
+button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #007bff; color: white; font-weight: bold; margin-top: 10px; }
+#wheel-container { width: 220px; height: 220px; margin: 10px auto; border-radius: 50%; border: 6px solid #fff;
+background: conic-gradient(#2ed573 0deg 120deg, #ff4757 120deg 240deg, #a55eea 240deg 360deg);
+transition: transform 4s cubic-bezier(0.2, 0, 0, 1); }
+.promo { margin-top: 20px; font-size: 11px; color: #777; border-top: 1px solid #333; padding-top: 10px; }
 </style>
 </head>
 <body>
 
 <div class="container">
 <div id="screen-menu" class="screen active">
-<img src="https://i.ibb.co/C0wV1nS/image.png" alt="Logo"> <h1>Плачем / Смеемся</h1>
-<button onclick="show('screen-rounds')">Начать играть</button>
+<img src="https://i.ibb.co/C0wV1nS/image.png" class="logo">
+<h1>Плачем / Смеемся</h1>
+<div class="card" onclick="selectMode(this, 'classic')">Классический</div>
+<div class="card" onclick="selectMode(this, 'adult')">18+ Вечеринка</div>
+<p style="font-size:12px; color:#aaa;">Правила: Выполняй задания, не отказывайся!</p>
+<button onclick="goToRounds()">Начать играть</button>
 </div>
 
 <div id="screen-rounds" class="screen">
@@ -34,66 +37,76 @@ background: conic-gradient(#2ed573 0deg 120deg, #ff4757 120deg 240deg, #a55eea 2
 <button onclick="setRounds(1)">1 раунд</button>
 <button onclick="setRounds(3)">3 раунда</button>
 <button onclick="setRounds(5)">5 раундов</button>
-<button onclick="show('screen-menu')">Назад</button>
+<button style="background:#555" onclick="show('screen-menu')">Назад</button>
 </div>
 
 <div id="screen-players" class="screen">
 <h3>Добавь игроков</h3>
-<input type="text" id="player-input" style="padding:10px; width:70%; border-radius:10px;" placeholder="Имя...">
-<button style="width:20%" onclick="addPlayer()">+</button>
+<div style="display:flex;">
+<input type="text" id="player-input" style="padding:10px; flex-grow:1; border-radius:10px;">
+<button style="width:40px; margin-top:0;" onclick="addPlayer()">+</button>
+</div>
 <div id="player-list"></div>
 <button style="background:#2ed573" onclick="startFinal()">Поехали!</button>
-<button onclick="show('screen-rounds')">Назад</button>
+<button style="background:#555" onclick="show('screen-rounds')">Назад</button>
 </div>
 
 <div id="screen-game" class="screen">
 <h2 id="turn-info">Ход: </h2>
-<div id="arrow">▼</div>
+<div style="font-size:30px; margin-bottom:-10px;">▼</div>
 <div id="wheel-container"></div>
-<div id="task-display" style="padding:15px; background:#333; border-radius:10px;">Жми КРУТИТЬ!</div>
+<div id="task-display" style="padding:10px; background:#333; border-radius:10px;">Жми КРУТИТЬ!</div>
 <div id="action-btns" style="display:none;">
 <button style="background:#2ed573" onclick="finishTask(true)">Выполнено</button>
 <button style="background:#ff4757" onclick="finishTask(false)">Отказ</button>
 </div>
 <button id="spin-btn" onclick="spin()">КРУТИТЬ</button>
+<button style="background:#555" onclick="show('screen-menu')">В главное меню</button>
+<div class="promo">📸 Выкладывай видео в соцсети, отмечай игру — пусть весь мир узнает о нас!</div>
 </div>
 </div>
 
 <script>
-let rounds = 1, players = [], curIdx = 0, tasksDone = 0;
-const db = { easy: ["Обними соседа", 1], medium: ["Спой", 2], hard: ["Сделай 50 приседаний", 3] };
+let mode, rounds, players = [], curIdx = 0;
+// Задания (ограничимся примером, заполнишь остальными)
+const db = { easy: "Легкое задание", medium: "Среднее задание", hard: "Сложное задание" };
 
 function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function selectMode(el, m) { mode = m; document.querySelectorAll('.card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); }
+function goToRounds() { if(!mode) return alert('Выбери режим!'); show('screen-rounds'); }
 function setRounds(r) { rounds = r; show('screen-players'); }
 function addPlayer() {
 let n = document.getElementById('player-input').value;
 if(n) { players.push({name:n, score:0, done:0}); render(); document.getElementById('player-input').value=''; }
 }
 function render() { document.getElementById('player-list').innerHTML = players.map((p,i) => `<div class='player-item'>${p.name} <button class='del-btn' onclick='players.splice(${i},1);render()'>Удалить</button></div>`).join(''); }
+
 function startFinal() { if(players.length>0) show('screen-game'); }
 
 function spin() {
 const wheel = document.getElementById('wheel-container');
-wheel.classList.remove('spinning');
-void wheel.offsetWidth; // перезапуск анимации
-wheel.classList.add('spinning');
+// Целевые углы для секторов: 0-120 (Green), 120-240 (Red), 240-360 (Purple)
+// Чтобы стрелка (сверху, 0°) указывала на центр, добавляем офсет
+const sectors = [60, 180, 300];
+const randomSector = sectors[Math.floor(Math.random() * sectors.length)];
+const finalDeg = 3600 + randomSector;
+
+wheel.style.transform = `rotate(${finalDeg}deg)`;
 document.getElementById('spin-btn').style.display = 'none';
 
 setTimeout(() => {
-document.getElementById('task-display').innerText = "Твое задание: " + db.easy[0];
+const level = randomSector === 60 ? 'easy' : (randomSector === 180 ? 'medium' : 'hard');
+document.getElementById('task-display').innerText = db[level];
 document.getElementById('action-btns').style.display = 'block';
-}, 5000);
+}, 4000);
 }
 
 function finishTask(success) {
 players[curIdx].done++;
-tasksDone++;
-curIdx = (curIdx + 1) % players.length;
-
-if(tasksDone >= players.length * rounds * 5) {
-alert("Игра окончена! Победитель: " + players.sort((a,b)=>b.score-a.score)[0].name);
-location.reload();
+if (players.every(p => p.done >= rounds * 5)) {
+alert("Игра окончена!"); location.reload();
 } else {
+curIdx = (curIdx + 1) % players.length;
 document.getElementById('task-display').innerText = "Жми КРУТИТЬ!";
 document.getElementById('action-btns').style.display = 'none';
 document.getElementById('spin-btn').style.display = 'block';
