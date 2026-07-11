@@ -10,13 +10,16 @@ body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; t
 .card { border: 2px solid #444; padding: 10px; border-radius: 15px; margin: 8px 0; cursor: pointer; }
 .selected { border-color: #a55eea; background: #3c2a66; }
 .player-item { display: flex; align-items: center; justify-content: space-between; padding: 5px; border-bottom: 1px solid #333; }
-.del-btn { padding: 2px 8px; font-size: 10px; background: #ff4757; border-radius: 5px; border: none; color: white; cursor: pointer; }
+/* Кнопка удаления маленькая */
+.del-btn { padding: 2px 6px; font-size: 10px; background: #ff4757; border: none; color: white; cursor: pointer; border-radius: 4px; }
 button { width: 100%; padding: 12px; border-radius: 15px; border: none; background: #007bff; color: white; font-weight: bold; cursor: pointer; margin-top: 8px; }
-.btn-round { background: #555; display: inline-block; width: 22%; margin: 1%; }
-#wheel-container { position: relative; width: 200px; height: 200px; margin: 20px auto; border-radius: 50%; border: 6px solid #fff;
+.back-btn { background: #555; }
+/* Колесо и стрелка */
+#wheel-container { position: relative; width: 220px; height: 220px; margin: 20px auto; border-radius: 50%; border: 6px solid #fff;
 background: conic-gradient(#2ed573 0deg 120deg, #ff4757 120deg 240deg, #a55eea 240deg 360deg);
-transition: transform 6s cubic-bezier(0.1, 0, 0, 1); }
-.leader { color: #f1c40f; font-weight: bold; font-size: 1.2em; text-shadow: 0 0 10px #f1c40f; }
+transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1); }
+#arrow { font-size: 30px; margin-bottom: -15px; z-index: 10; }
+.social-promo { margin-top: 20px; padding: 10px; border: 1px dashed #a55eea; font-size: 12px; color: #aaa; }
 </style>
 </head>
 <body>
@@ -27,61 +30,63 @@ transition: transform 6s cubic-bezier(0.1, 0, 0, 1); }
 <div class="card" onclick="selectMode(this, 'classic')">Классический</div>
 <div class="card" onclick="selectMode(this, 'hardcore')">Хардкор</div>
 <div class="card" onclick="selectMode(this, 'adult')">Вечеринка 18+</div>
-<button onclick="goToPlayers()">Начать игру</button>
-<div style="margin-top:15px; font-size:13px; color:#aaa; text-align:left;">
-<b>Правила:</b> Игроки по очереди крутят колесо. Выпавший сектор определяет сложность задания. Выполняешь — получаешь баллы, отказываешься — теряешь. Игра идет до победного конца!
-</div>
+<button onclick="goToPlayers()">Начать играть</button>
+<p style="font-size:12px; color:#888;">Правила: Выполняй задания, зарабатывай баллы. Отказ — штраф!</p>
 </div>
 
-<div id="screen-setup" class="screen">
-<h3>Выбери длительность:</h3>
-<button class="btn-round" onclick="setRounds(1)">1</button>
-<button class="btn-round" onclick="setRounds(3)">3</button>
-<button class="btn-round" onclick="setRounds(5)">5</button>
-<button class="btn-round" onclick="setRounds(10)">10</button>
+<div id="screen-rounds" class="screen">
+<h3>Выбери количество раундов</h3>
+<button onclick="setRounds(1)">1 раунд</button>
+<button onclick="setRounds(3)">3 раунда</button>
+<button onclick="setRounds(5)">5 раундов</button>
+<button onclick="setRounds(10)">10 раундов</button>
+<button class="back-btn" onclick="show('screen-menu')">Назад</button>
 </div>
 
 <div id="screen-players" class="screen">
-<h3>Участники</h3>
+<h3>Добавь игроков</h3>
 <input type="text" id="player-input" style="padding:10px; width:70%; border-radius:10px;" placeholder="Имя...">
 <button style="width:20%" onclick="addPlayer()">+</button>
-<div id="player-list"></div>
-<button style="background:#2ed573" onclick="startFinal()">Погнали!</button>
+<div id="player-list" style="margin: 15px 0;"></div>
+<button style="background:#2ed573" onclick="startFinal()">Поехали!</button>
+<button class="back-btn" onclick="show('screen-rounds')">Назад</button>
 </div>
 
 <div id="screen-game" class="screen">
 <h2 id="turn-info">Ход: </h2>
+<div id="arrow">▼</div>
 <div id="wheel-container"></div>
-<div id="task-display" style="padding:15px; background:#333; border-radius:10px;">Крути!</div>
+<div id="task-display" style="padding:15px; background:#333; border-radius:10px;">Жми КРУТИТЬ!</div>
+
 <div id="action-btns" style="display:none;">
 <button style="background:#2ed573" onclick="finishTask(true)">Выполнено</button>
 <button style="background:#ff4757" onclick="finishTask(false)">Отказ</button>
 </div>
+
 <button id="spin-btn" onclick="spin()">КРУТИТЬ</button>
-<div id="leaderboard"></div>
+<button class="back-btn" onclick="show('screen-menu')">Выход в меню</button>
+
+<div class="social-promo">
+📸 <b>Играй и хайпуй!</b> Выкладывай видео в соцсети, отмечай игру — пусть весь мир узнает, как вы отрываетесь!
+</div>
 </div>
 </div>
 
 <script>
-let mode, rounds, players = [], curIdx = 0, curRound = 1, tasksPerRound = 5, curLevel;
+let mode, rounds, players = [], curIdx = 0, curLevel;
 const db = {
-classic: { easy: ["Обними соседа (+1)", 1], medium: ["Спой (+2)", 2], hard: ["Сделай 50 приседаний (+3)", 3] },
-// ... (дополни остальные задания по аналогии)
+classic: { easy: ["Обними соседа", 1], medium: ["Спой песню", 2], hard: ["Сделай 50 приседаний", 3] },
+hardcore: { easy: ["Кукарекай в окно", 1], medium: ["Позвони в такси и закажи борщ", 2], hard: ["Напиши бывшей: Я не могу без тебя", 3] },
+adult: { easy: ["Покажи язык", 1], medium: ["Сбрей кончик брови", 2], hard: ["Крикни в окно: Я люблю пельмени!", 3] }
 };
 
 function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function selectMode(el, m) { mode = m; document.querySelectorAll('.card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); }
-function goToPlayers() { if(!mode) return alert('Выберите режим'); show('screen-setup'); }
+function goToPlayers() { if (!mode) return alert('Выберите режим!'); show('screen-rounds'); }
 function setRounds(r) { rounds = r; show('screen-players'); }
-function addPlayer() {
-let name = document.getElementById('player-input').value;
-if(name) { players.push({name: name, score: 0, count: 0}); renderPlayers(); document.getElementById('player-input').value=''; }
-}
-function renderPlayers() { document.getElementById('player-list').innerHTML = players.map((p,i) => `<div class='player-item'>${p.name} <button class='del-btn' onclick='players.splice(${i},1);renderPlayers()'>X</button></div>`).join(''); }
-
-function startFinal() { if(players.length==0) return; show('screen-game'); updateTurn(); }
-
-function updateTurn() { document.getElementById('turn-info').innerText = "Ход: " + players[curIdx].name + " (Раунд " + curRound + ")"; }
+function addPlayer() { let n = document.getElementById('player-input').value; if(n) { players.push({name:n, score:0}); render(); document.getElementById('player-input').value=''; } }
+function render() { document.getElementById('player-list').innerHTML = players.map((p,i) => `<div class='player-item'>${p.name} <button class='del-btn' onclick='players.splice(${i},1);render()'>Удалить</button></div>`).join(''); }
+function startFinal() { if(players.length==0) return; show('screen-game'); document.getElementById('turn-info').innerText = "Ход: " + players[0].name; }
 
 function spin() {
 const wheel = document.getElementById('wheel-container');
@@ -93,36 +98,18 @@ setTimeout(() => {
 const angle = deg % 360;
 curLevel = angle < 120 ? 'easy' : (angle < 240 ? 'medium' : 'hard');
 const data = db[mode][curLevel];
-document.getElementById('task-display').innerText = data[0] + (curLevel === 'hard' ? "\n(Я бы ни за что не согласился это сделать!)" : "");
+document.getElementById('task-display').innerText = data[0] + (curLevel === 'hard' ? " (Я бы ни за что не согласился это сделать!)" : "");
 document.getElementById('action-btns').style.display = 'block';
-}, 6000);
+}, 5000);
 }
 
 function finishTask(success) {
 const points = {easy: 1, medium: 2, hard: 3};
 players[curIdx].score += success ? points[curLevel] : -points[curLevel];
-players[curIdx].count++;
-
-if(players[curIdx].count >= tasksPerRound * rounds) { endGame(); return; }
-
 curIdx = (curIdx + 1) % players.length;
-if(curIdx === 0) curRound++;
-
 document.getElementById('action-btns').style.display = 'none';
 document.getElementById('spin-btn').style.display = 'block';
-updateTurn();
-renderLeaderboard();
-}
-
-function renderLeaderboard() {
-let sorted = [...players].sort((a, b) => b.score - a.score);
-document.getElementById('leaderboard').innerHTML = "<h3>Итоги:</h3>" + sorted.map((p,i) => `<div class="${i===0?'leader':''}">${p.name}: ${p.score}</div>`).join('');
-}
-
-function endGame() {
-let winner = players.reduce((prev, current) => (prev.score > current.score) ? prev : current);
-alert("Игра завершена! Победитель: " + winner.name + " с результатом " + winner.score + " баллов!");
-location.reload();
+document.getElementById('turn-info').innerText = "Ход: " + players[curIdx].name;
 }
 </script>
 </body>
