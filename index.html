@@ -4,15 +4,20 @@
 <meta charset="UTF-8">
 <title>Плачем / Смеемся</title>
 <style>
-body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 10px; }
+body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 10px; }
 .container { max-width: 400px; margin: auto; background: #252525; padding: 20px; border-radius: 20px; }
 .screen { display: none; } .active { display: block; }
-.player-item { display: flex; align-items: center; justify-content: space-between; padding: 5px; border-bottom: 1px solid #333; }
-.del-btn { padding: 2px 8px; font-size: 10px; background: #ff4757; border: none; color: white; cursor: pointer; border-radius: 4px; width: auto; }
+img { width: 100%; max-width: 250px; border-radius: 20px; margin-bottom: 20px; }
 button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #007bff; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
+/* Исправленная кнопка удаления */
+.player-item { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333; }
+.del-btn { padding: 4px 8px; font-size: 11px; background: #ff4757; border: none; color: white; border-radius: 4px; cursor: pointer; }
+
+/* Колесо с анимацией */
 #wheel-container { width: 220px; height: 220px; margin: 20px auto; border-radius: 50%; border: 6px solid #fff;
-background: conic-gradient(#2ed573 0deg 120deg, #ff4757 120deg 240deg, #a55eea 240deg 360deg);
-transition: transform 5s cubic-bezier(0.1, 0, 0, 1); }
+background: conic-gradient(#2ed573 0deg 120deg, #ff4757 120deg 240deg, #a55eea 240deg 360deg); }
+.spinning { animation: spin 5s cubic-bezier(0.1, 0, 0.1, 1) forwards; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(3600deg); } }
 #arrow { font-size: 30px; margin-bottom: -15px; }
 </style>
 </head>
@@ -20,7 +25,7 @@ transition: transform 5s cubic-bezier(0.1, 0, 0, 1); }
 
 <div class="container">
 <div id="screen-menu" class="screen active">
-<h1>Плачем / Смеемся</h1>
+<img src="https://i.ibb.co/C0wV1nS/image.png" alt="Logo"> <h1>Плачем / Смеемся</h1>
 <button onclick="show('screen-rounds')">Начать играть</button>
 </div>
 
@@ -29,23 +34,23 @@ transition: transform 5s cubic-bezier(0.1, 0, 0, 1); }
 <button onclick="setRounds(1)">1 раунд</button>
 <button onclick="setRounds(3)">3 раунда</button>
 <button onclick="setRounds(5)">5 раундов</button>
-<button class="back-btn" style="background:#555" onclick="show('screen-menu')">Назад</button>
+<button onclick="show('screen-menu')">Назад</button>
 </div>
 
 <div id="screen-players" class="screen">
 <h3>Добавь игроков</h3>
 <input type="text" id="player-input" style="padding:10px; width:70%; border-radius:10px;" placeholder="Имя...">
 <button style="width:20%" onclick="addPlayer()">+</button>
-<div id="player-list" style="margin: 15px 0;"></div>
-<button onclick="startFinal()">Поехали!</button>
-<button class="back-btn" style="background:#555" onclick="show('screen-rounds')">Назад</button>
+<div id="player-list"></div>
+<button style="background:#2ed573" onclick="startFinal()">Поехали!</button>
+<button onclick="show('screen-rounds')">Назад</button>
 </div>
 
 <div id="screen-game" class="screen">
 <h2 id="turn-info">Ход: </h2>
 <div id="arrow">▼</div>
 <div id="wheel-container"></div>
-<div id="task-display" style="padding:15px; background:#333; border-radius:10px; min-height:50px;">Крути!</div>
+<div id="task-display" style="padding:15px; background:#333; border-radius:10px;">Жми КРУТИТЬ!</div>
 <div id="action-btns" style="display:none;">
 <button style="background:#2ed573" onclick="finishTask(true)">Выполнено</button>
 <button style="background:#ff4757" onclick="finishTask(false)">Отказ</button>
@@ -55,51 +60,45 @@ transition: transform 5s cubic-bezier(0.1, 0, 0, 1); }
 </div>
 
 <script>
-let mode = 'classic', rounds = 1, players = [], curIdx = 0, totalTasks = 0, maxTasks;
-const db = {
-classic: { easy: ["Обними соседа", 1], medium: ["Спой", 2], hard: ["Присядь 50 раз", 3] }
-};
+let rounds = 1, players = [], curIdx = 0, tasksDone = 0;
+const db = { easy: ["Обними соседа", 1], medium: ["Спой", 2], hard: ["Сделай 50 приседаний", 3] };
 
 function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function setRounds(r) { rounds = r; maxTasks = r * 5; show('screen-players'); }
+function setRounds(r) { rounds = r; show('screen-players'); }
 function addPlayer() {
 let n = document.getElementById('player-input').value;
 if(n) { players.push({name:n, score:0, done:0}); render(); document.getElementById('player-input').value=''; }
 }
 function render() { document.getElementById('player-list').innerHTML = players.map((p,i) => `<div class='player-item'>${p.name} <button class='del-btn' onclick='players.splice(${i},1);render()'>Удалить</button></div>`).join(''); }
-function startFinal() { if(players.length==0) return; show('screen-game'); updateTurn(); }
-
-function updateTurn() { document.getElementById('turn-info').innerText = "Ход: " + players[curIdx].name; }
+function startFinal() { if(players.length>0) show('screen-game'); }
 
 function spin() {
 const wheel = document.getElementById('wheel-container');
-const randomDeg = Math.floor(Math.random() * 360) + 2520; // Минимум 7 полных оборотов
-wheel.style.transform = `rotate(${randomDeg}deg)`;
+wheel.classList.remove('spinning');
+void wheel.offsetWidth; // перезапуск анимации
+wheel.classList.add('spinning');
 document.getElementById('spin-btn').style.display = 'none';
 
 setTimeout(() => {
-const angle = randomDeg % 360;
-const level = angle < 120 ? 'easy' : (angle < 240 ? 'medium' : 'hard');
-document.getElementById('task-display').innerText = db.classic[level][0];
+document.getElementById('task-display').innerText = "Твое задание: " + db.easy[0];
 document.getElementById('action-btns').style.display = 'block';
 }, 5000);
 }
 
 function finishTask(success) {
-players[curIdx].score += success ? 1 : -1;
 players[curIdx].done++;
+tasksDone++;
+curIdx = (curIdx + 1) % players.length;
 
-// Проверка завершения игры: если все игроки сделали по 5 * rounds заданий
-if (players.every(p => p.done >= rounds * 5)) {
+if(tasksDone >= players.length * rounds * 5) {
 alert("Игра окончена! Победитель: " + players.sort((a,b)=>b.score-a.score)[0].name);
 location.reload();
-return;
-}
-
-curIdx = (curIdx + 1) % players.length;
+} else {
+document.getElementById('task-display').innerText = "Жми КРУТИТЬ!";
 document.getElementById('action-btns').style.display = 'none';
 document.getElementById('spin-btn').style.display = 'block';
-updateTurn();
+document.getElementById('turn-info').innerText = "Ход: " + players[curIdx].name;
+}
 }
 </script>
 </body>
