@@ -6,16 +6,19 @@
 <style>
 body { font-family: 'Segoe UI', sans-serif; background: #fdfcfb; margin: 0; padding: 20px; color: #333; }
 .container { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-.card { border: 2px solid #eee; padding: 15px; border-radius: 20px; margin: 10px 0; cursor: pointer; transition: 0.3s; text-align: left; }
+.card { border: 2px solid #eee; padding: 15px; border-radius: 20px; margin: 10px 0; cursor: pointer; transition: 0.3s; }
 .selected { border-color: #007bff; background: #e7f1ff; }
+.player-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
 input { width: 85%; padding: 10px; margin: 10px 0; border-radius: 10px; border: 1px solid #ccc; }
 button { width: 100%; padding: 15px; border-radius: 20px; border: none; background: #007bff; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.back-btn { background: #6c757d; }
+#wheel { width: 200px; height: 200px; border: 8px solid #007bff; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: transform 2s; }
 </style>
 </head>
 <body>
 
-<div class="container" id="app">
-<!-- ЭКРАН 1: Выбор режима -->
+<div class="container">
+<!-- ЭКРАН 1: Режимы -->
 <div id="screen-mode">
 <h1>СМЕЕМСЯ / ПЛАЧЕМ</h1>
 <div class="card" onclick="selectMode(this, 'classic')">Классический</div>
@@ -24,20 +27,33 @@ button { width: 100%; padding: 15px; border-radius: 20px; border: none; backgrou
 <button onclick="goToPlayers()">Далее</button>
 </div>
 
-<!-- ЭКРАН 2: Ввод игроков -->
+<!-- ЭКРАН 2: Игроки -->
 <div id="screen-players" style="display:none;">
 <h1>Кто играет?</h1>
 <input type="text" id="player-input" placeholder="Имя игрока">
 <button onclick="addPlayer()">+ Добавить игрока</button>
-<h3>Участники:</h3>
-<ul id="player-list"></ul>
+<div id="player-list"></div>
 <button style="background:#2ed573" onclick="startGame()">Начать игру</button>
+<button class="back-btn" onclick="show('screen-mode')">Назад</button>
+</div>
+
+<!-- ЭКРАН 3: Игра -->
+<div id="screen-game" style="display:none;">
+<h2 id="current-player">Ход: </h2>
+<div id="wheel">КРУТИ!</div>
+<button onclick="spin()">КРУТИТЬ КОЛЕСО</button>
+<button class="back-btn" onclick="show('screen-mode')">В главное меню</button>
 </div>
 </div>
 
 <script>
-let selectedMode = '';
-let players = [];
+let selectedMode = '', players = [], currentPlayerIdx = 0;
+
+function show(id) {
+document.getElementById('screen-mode').style.display = (id === 'screen-mode') ? 'block' : 'none';
+document.getElementById('screen-players').style.display = (id === 'screen-players') ? 'block' : 'none';
+document.getElementById('screen-game').style.display = (id === 'screen-game') ? 'block' : 'none';
+}
 
 function selectMode(el, mode) {
 document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
@@ -47,23 +63,42 @@ selectedMode = mode;
 
 function goToPlayers() {
 if (!selectedMode) return alert('Выберите режим!');
-document.getElementById('screen-mode').style.display = 'none';
-document.getElementById('screen-players').style.display = 'block';
+show('screen-players');
 }
 
 function addPlayer() {
 const name = document.getElementById('player-input').value;
-if (name) {
+if (!name) return;
 players.push(name);
-document.getElementById('player-list').innerHTML += `<li>${name}</li>`;
+renderPlayers();
 document.getElementById('player-input').value = '';
 }
+
+function removePlayer(idx) {
+players.splice(idx, 1);
+renderPlayers();
+}
+
+function renderPlayers() {
+const list = document.getElementById('player-list');
+list.innerHTML = players.map((p, i) => `<div class="player-item">${p} <button style="width:auto; padding:5px" onclick="removePlayer(${i})">X</button></div>`).join('');
 }
 
 function startGame() {
-if (players.length < 1) return alert('Добавьте хотя бы одного игрока!');
-alert('Режим: ' + selectedMode + '. Игроки: ' + players.join(', ') + '. Погнали крутить!');
-// Здесь можно добавить переход к экрану с колесом
+if (players.length === 0) return alert('Добавьте игроков!');
+show('screen-game');
+document.getElementById('current-player').innerText = "Ход: " + players[currentPlayerIdx];
+}
+
+function spin() {
+const wheel = document.getElementById('wheel');
+wheel.style.transform = 'rotate(720deg)';
+setTimeout(() => {
+wheel.style.transform = 'rotate(0deg)';
+alert("Игрок " + players[currentPlayerIdx] + ", твое задание!");
+currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
+document.getElementById('current-player').innerText = "Ход: " + players[currentPlayerIdx];
+}, 2000);
 }
 </script>
 </body>
