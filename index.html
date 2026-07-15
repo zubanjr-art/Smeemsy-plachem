@@ -7,81 +7,79 @@
         body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 10px; }
         .container { max-width: 450px; margin: auto; background: #252525; padding: 20px; border-radius: 20px; }
         .screen { display: none; } .active { display: block; }
-        .player-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding: 5px 0; }
-        .del-btn { background: #ff4757; border: none; color: white; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; }
-        button { width: 100%; padding: 10px; border-radius: 10px; border: none; background: #007bff; color: white; font-weight: bold; margin-top: 5px; }
         
-        /* 9 секторов */
+        /* Логотип */
+        .logo { width: 180px; margin-bottom: 20px; border-radius: 20px; }
+        
+        .player-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding: 5px 0; }
+        button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #007bff; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        
         #wheel { width: 250px; height: 250px; border-radius: 50%; border: 8px solid white; margin: 20px auto;
                  background: conic-gradient(
                     #2ed573 0deg 40deg, #ff4757 40deg 80deg, #a55eea 80deg 120deg,
                     #2ed573 120deg 160deg, #ff4757 160deg 200deg, #a55eea 200deg 240deg,
                     #2ed573 240deg 280deg, #ff4757 280deg 320deg, #a55eea 320deg 360deg);
                  transition: transform 5s cubic-bezier(0.1, 0, 0, 1); }
-        .leaderboard { background: #333; padding: 10px; border-radius: 10px; margin: 10px 0; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="screen-game" class="screen active">
-        <div style="font-size: 24px;">▼</div>
+    <div id="screen-menu" class="screen active">
+        <img src="https://i.ibb.co/C0wV1nS/image.png" class="logo">
+        <h1>Плачем / Смеемся</h1>
+        <button onclick="show('screen-game')">Играть</button>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <button style="background:#555; padding:5px; font-size:12px;" onclick="show('screen-menu')">Назад в меню</button>
+        <div style="font-size: 30px; margin-bottom:-15px;">▼</div>
         <div id="wheel"></div>
-        
-        <div class="leaderboard" id="leaderboard"></div>
+        <div id="leaderboard" style="margin: 10px 0; font-size:14px;"></div>
         <div id="task-area" style="padding:15px; background:#444; border-radius:10px;">Жми крутить!</div>
-        
         <button id="spin-btn" onclick="spin()">КРУТИТЬ</button>
         <div id="action-btns" style="display:none;">
-            <button style="background:#2ed573" onclick="finish(true)">Выполнено</button>
-            <button style="background:#ff4757" onclick="finish(false)">Отказ</button>
+            <button style="background:#2ed573" onclick="finish(true)">Выполнено (+баллы)</button>
+            <button style="background:#ff4757" onclick="finish(false)">Отказ (-баллы)</button>
         </div>
     </div>
 </div>
 
 <script>
-    let players = [{name: "Иван", score: 0, done: 0}], curIdx = 0;
-    const roast = ["Серьезно? Я бы даже не смотрел в ту сторону!", "Слабак! Давай попробуй!", "У тебя точно хватит духа?", "М-да, уровень заданий явно не для тебя."];
-    
-    // 9 секторов (по 3 на каждую сложность: 0,3,6 - easy; 1,4,7 - med; 2,5,8 - hard)
-    const db = [
-        "Обними соседа", "Спой песню", "Сделай 50 приседаний",
-        "Изобрази кота", "Позвони в такси", "Крикни в окно: Люблю пельмени!",
-        "Расскажи анекдот", "Сбрей кончик брови", "Напиши бывшей: Люблю!"
-    ];
+    let players = [{name: "Игрок 1", score: 0}], curIdx = 0;
+    let rotation = 0; // Накопительный угол
+
+    function show(id) { 
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+        document.getElementById(id).classList.add('active'); 
+    }
 
     function spin() {
         const wheel = document.getElementById('wheel');
         const randomSector = Math.floor(Math.random() * 9);
-        const rotation = 3600 + (randomSector * 40) + 20; // 10 полных кругов + центр сектора
+        // Добавляем 10 полных оборотов (3600) к текущему углу + нужный сектор
+        rotation += 3600 + (randomSector * 40); 
         wheel.style.transform = `rotate(${rotation}deg)`;
         
         document.getElementById('spin-btn').style.display = 'none';
         
         setTimeout(() => {
-            const task = db[randomSector];
+            const tasks = ["Обними соседа", "Спой", "Сделай 50 приседаний", "Изобрази кота", "Позвони в такси", "Крикни в окно!", "Расскажи анекдот", "Сбрей кончик брови", "Напиши бывшей!"];
             const isHard = randomSector % 3 === 2;
-            document.getElementById('task-area').innerText = task + (isHard ? "\n\n" + roast[Math.floor(Math.random()*roast.length)] : "");
+            const roast = ["Серьезно? Я бы не решился...", "Слабо выполнить?", "Ой, ну это же просто!", "Ты серьезно? Давай лучше что-то сложное!"];
+            
+            document.getElementById('task-area').innerText = tasks[randomSector] + (isHard ? "\n\n" + roast[Math.floor(Math.random()*roast.length)] : "");
             document.getElementById('action-btns').style.display = 'block';
         }, 5000);
     }
 
     function finish(win) {
-        const points = [1, 2, 3]; // баллы за легкий, средний, сложный
-        players[curIdx].score += win ? points[0] : -points[0];
-        curIdx = (curIdx + 1) % players.length;
-        
+        players[curIdx].score += win ? 1 : -1;
         document.getElementById('task-area').innerText = "Жми крутить!";
         document.getElementById('action-btns').style.display = 'none';
         document.getElementById('spin-btn').style.display = 'block';
-        updateUI();
+        document.getElementById('leaderboard').innerHTML = `Рейтинг: ${players[0].name} — ${players[0].score} очков`;
     }
-
-    function updateUI() {
-        document.getElementById('leaderboard').innerHTML = players.map(p => 
-            `<div class='player-row'><span>${p.name}</span> <span>${p.score} очков</span></div>`).join('');
-    }
-    updateUI();
 </script>
 </body>
 </html>
