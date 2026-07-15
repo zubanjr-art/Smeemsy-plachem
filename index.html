@@ -5,28 +5,24 @@
     <title>Плачем / Смеемся</title>
     <style>
         body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 10px; }
-        .container { max-width: 450px; margin: auto; background: #252525; padding: 20px; border-radius: 20px; }
+        .container { max-width: 400px; margin: auto; background: #252525; padding: 20px; border-radius: 20px; }
         .screen { display: none; } .active { display: block; }
-        .logo { width: 150px; border-radius: 20px; margin-bottom: 10px; }
-        .player-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #333; }
-        .del-btn { padding: 2px 6px; font-size: 10px; background: #ff4757; border: none; color: white; cursor: pointer; border-radius: 4px; }
-        button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #007bff; color: white; font-weight: bold; margin-top: 5px; cursor: pointer; }
-        /* 9 секторов: каждый по 40 градусов. Смещение на 20 градусов центрирует сектор под стрелкой */
-        #wheel { width: 220px; height: 220px; border-radius: 50%; border: 6px solid white; margin: 20px auto;
-                 background: conic-gradient(
-                    #2ed573 0deg 40deg, #ff4757 40deg 80deg, #a55eea 80deg 120deg,
-                    #2ed573 120deg 160deg, #ff4757 160deg 200deg, #a55eea 200deg 240deg,
-                    #2ed573 240deg 280deg, #ff4757 280deg 320deg, #a55eea 320deg 360deg);
-                 transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1); }
-        .promo { margin-top: 20px; font-size: 11px; color: #777; border-top: 1px solid #333; padding-top: 10px; }
+        /* Логотип */
+        .logo { width: 150px; height: 150px; border-radius: 20px; margin-bottom: 10px; object-fit: cover; }
+        button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #007bff; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="screen-menu" class="screen active">
-        <img src="https://i.ibb.co/C0wV1nS/image.png" class="logo">
+        <img src="https://i.ibb.co/C0wV1nS/image.png" class="logo" alt="Логотип">
         <h1>Плачем / Смеемся</h1>
+        
+        <div style="background:#333; padding:10px; border-radius:10px; font-size:12px; margin-bottom:15px;">
+            <b>Правила:</b> Выбирай режим, крути колесо, выполняй задания. Выполняешь — +баллы, отказываешься — -баллы. Цель — набрать больше всех!
+        </div>
+
         <button onclick="show('screen-players')">Начать игру</button>
     </div>
 
@@ -35,14 +31,17 @@
         <input type="text" id="p-input" style="padding:10px; width:65%; border-radius:10px;">
         <button style="width:25%; margin:0;" onclick="addPlayer()">+</button>
         <div id="p-list" style="margin: 15px 0;"></div>
-        <button style="background:#2ed573" onclick="startFinal()">Поехали!</button>
+        <button style="background:#2ed573" onclick="show('screen-game')">Поехали!</button>
         <button style="background:#555" onclick="show('screen-menu')">Назад</button>
     </div>
 
     <div id="screen-game" class="screen">
         <div id="leaderboard" style="font-size:14px; margin-bottom:10px; color:#f1c40f;"></div>
         <div style="font-size: 30px; margin-bottom:-15px;">▼</div>
-        <div id="wheel"></div>
+        <div id="wheel" style="width: 220px; height: 220px; border-radius: 50%; border: 6px solid white; margin: 20px auto;
+                 background: conic-gradient(#2ed573 0deg 40deg, #ff4757 40deg 80deg, #a55eea 80deg 120deg, #2ed573 120deg 160deg, #ff4757 160deg 200deg, #a55eea 200deg 240deg, #2ed573 240deg 280deg, #ff4757 280deg 320deg, #a55eea 320deg 360deg);
+                 transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);"></div>
+        
         <div id="task-area" style="padding:15px; background:#444; border-radius:10px;">Жми крутить!</div>
         <button id="spin-btn" onclick="spin()">КРУТИТЬ</button>
         <div id="action-btns" style="display:none;">
@@ -50,7 +49,7 @@
             <button style="background:#ff4757" onclick="finish(false)">Отказ</button>
         </div>
         <button style="background:#555" onclick="show('screen-menu')">Выход в меню</button>
-        <div class="promo">📸 Выкладывай видео в соцсети, отмечай игру — пусть весь мир узнает о нас!</div>
+        <div style="margin-top: 20px; font-size: 11px; color: #777;">📸 Выкладывай видео в соцсети, отмечай игру!</div>
     </div>
 </div>
 
@@ -60,16 +59,15 @@
     const roast = ["Серьезно? Я бы не решился...", "Слабак, попробуй!", "Ой, ну это же проще простого!", "Ты серьезно? Давай сложнее!"];
 
     function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    
     function addPlayer() { 
         let n = document.getElementById('p-input').value; 
         if(n) { players.push({name:n, score:0}); document.getElementById('p-list').innerHTML += `<div class='player-row'>${n} <button class='del-btn' onclick='this.parentElement.remove()'>X</button></div>`; document.getElementById('p-input').value=''; } 
     }
-    function startFinal() { if(players.length>0) { show('screen-game'); updateLeaderboard(); } }
-    
+
     function spin() {
         const wheel = document.getElementById('wheel');
         const randomSector = Math.floor(Math.random() * 9);
-        // Смещение 20deg центрирует сектор (40deg/2)
         rotation += 3600 + (randomSector * 40) + 20;
         wheel.style.transform = `rotate(${rotation}deg)`;
         document.getElementById('spin-btn').style.display = 'none';
@@ -87,11 +85,7 @@
         document.getElementById('action-btns').style.display = 'none';
         document.getElementById('spin-btn').style.display = 'block';
         document.getElementById('task-area').innerText = "Жми крутить!";
-        updateLeaderboard();
-    }
-
-    function updateLeaderboard() {
-        document.getElementById('leaderboard').innerHTML = players.map(p => `${p.name}: ${p.score} очков`).join(' | ');
+        document.getElementById('leaderboard').innerHTML = players.map(p => `${p.name}: ${p.score}`).join(' | ');
     }
 </script>
 </body>
